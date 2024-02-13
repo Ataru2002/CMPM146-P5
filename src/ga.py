@@ -10,6 +10,8 @@ import math
 
 width = 200
 height = 16
+elitist = False
+
 
 options = [
     "-",  # an empty space
@@ -69,26 +71,143 @@ class Individual_Grid(object):
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
 
         left = 1
-        right = width - 1
+        right = width - 2
+        pipes = 0
+        platforms = 0
+        enemies = 0
+        coins = 0
+        pits = 0
+        stairs = 0
+        for y in range(height):
+            for x in range(left, right):
+                if genome[y][x] == 'T':
+                    pipes = 1
+                if genome[y][x] == 'B':
+                    platforms = 1
+                if genome[y][x] == 'E':
+                    enemies = 1
+                if genome[y][x] == 'C':
+                    coins = 1
+                if y == height - 1 and genome[y][x] == '-':
+                    pits = 1
+                if y < height - 1 and genome[y][x] == 'X':
+                    stairs = 1
+
+        obstables_zonex = (9, 190)
+        obstables_zoney = (11, 13)
+        # introducing new stuff
+        if pipes < 1:
+            # add a pipe
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                genome[y][x] = 'T'
+                for yAlp in range(y + 1, height):
+                    genome[yAlp][x] = '|'
+
+        obstables_zonex = (9, 190)
+        obstables_zoney = (10, 12)
+        #add a platform
+        if platforms < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                for xAlp in range(x, x + 5):
+                    if genome[y][xAlp] == '-':
+                        blockdecider = random.randint(1, 100)
+                        if blockdecider <= 10:
+                            genome[y][xAlp] = '?'
+                        elif blockdecider <= 20:
+                            genome[y][xAlp] = 'M'
+                        else:
+                            genome[y][xAlp] = 'B'
+                    
+        obstables_zonex = (9, 190)
+        obstables_zoney = (14, 14)
+        #add an enemy
+        if enemies < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                genome[y][x] = 'E'
         
+        obstables_zonex = (1, 190)
+        obstables_zoney = (11, 14)
+        #add coins
+        if coins < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                genome[y][x] = 'C'
+
+        obstables_zonex = (9, 190)
+        obstables_zoney = (15, 15)
+        #add a pit
+        if pits < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == 'X':
+                genome[y][x] = '-'
+        
+        obstables_zonex = (9, 190)
+        obstables_zoney = (15, 15)
+        #add a stair
+        if stairs < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            step = 1
+            if genome[y][x] == 'X':
+                for xAlp in range(x, x + 4):
+                    if genome[y][xAlp] == 'X':
+                        for yAlp in range(y - step, y):
+                            genome[yAlp][xAlp] = 'X'
+                        step += 1
+                    else:
+                        break
+            
+        
+
+        '''
+        platform = False
+        stair = False
+        
+        # introducing new stuff
+        for y in range(height):
+            for x in range(left, right):
+                # add a pipe
+                if pipe == False and random.randint(1, 100) <= 20:
+                    if obstables_zoney[0] <= y and y <= obstables_zoney[1] and obstables_zonex[0] <= x and x <= obstables_zonex[1]:
+                        genome[y][x] = 'T'
+                        pipe = True
+                        for yAlp in range(y + 1, height):
+                            genome[yAlp][x] = '|'
+                
+        for y in range(height):
+            for x in range(left, right):
+                #add a platform size 5
+                if platform == False and random.randint(1, 100) <= 20:
+                    if obstables_zoney[0] <= y and y <= obstables_zoney[1] and obstables_zonex[0] <= x and x <= obstables_zonex[1]:
+                        platform = True
+                        for xAlp in range(x, x + 5):
+                            genome[y][xAlp] = 'B'
+
+
+
         # constraints
         for y in range(height):
-            for x in range(left, right):  
-                # Keep the skies clean
-                if y <= 4:
-                    genome[y][x] = '-'
-
+            for x in range(left, right): 
                 # No enemies in the sky
                 if genome[y][x] == 'E' and y + 2 > height:
                     genome[y][x] = '-'
 
                 # If I see a pipe head and no segments underneath
                 if genome[y][x] == 'T' and (y + 1 < height - 1 and(genome[y - 1][x] != '|')):
-                    genome[y][x] = genome[y][x - 1]
+                    genome[y][x] = '-'
 
                 # If I see a pipe segment, I'll see if it actually belongs to a pipe, if not I'll make it into an empty space
-                if genome[y][x] == '|' and ((genome[y - 1][x] != '|' or genome[y - 1][x] != 'T') or genome[y - 1][x] != '|') :
-                    genome[y][x] = '-'
+                if genome[y][x] == '|':
+                    if ((genome[y - 1][x] != '|' or genome[y - 1][x] != 'T') and (y + 1 < height - 1 and genome[y + 1][x] != '|')) :
+                        genome[y][x] = '-'
                 
                 # There shouldn't be anything blocking the goal
                 if right - x <= 3 and y < height - 1 and genome[y][x] != '-':
@@ -97,36 +216,19 @@ class Individual_Grid(object):
                 # Give the player some space
                 if left + x <= 10 and y < height - 1 and genome[y][x] != '-':
                     genome[y][x] = '-'
-
-        pipe = False
-        platform = False
-        stair = False
-        # introducing new stuff
+        
         for y in range(height):
             for x in range(left, right):
-                # add a pipe
-                if pipe == False and 3 <= height - y and height - y <= 5 and random.randint(1, 100) <= 10:
-                    genome[y][x] = 'T'
-                    pipe = True
-                    for yAlp in range(y + 1, height):
-                        genome[yAlp][x] = '|'
-                
-                #add a platform size 5
-                if platform == False and 4 <= height - y and height - y <= 6 and right - x >= 6 and random.randint(1, 100) <= 10:
-                    platform = True
-                    for xAlp in range(x, x + 5):
-                        genome[y][xAlp] = 'B'
-
                 #add a stair
-                if stair == False and 6 <= height - y and height - y <= 8 and left + x >= 30 and right - x >= 6 and random.randint(1, 100) <= 10:
-                    stair = True
-                    start = 1
-                    for xAlp in range(x - y, x):
-                        for heights in range(height - 1, height - start, -1):
-                            genome[heights][xAlp]
-                
-
-        
+                if stair == False and random.randint(1, 100) <= 10:
+                    if obstables_zoney[0] <= y and y <= obstables_zoney[1] and obstables_zonex[0] <= x and x <= obstables_zonex[1]:
+                        stair = True
+                        start = 0
+                        for xAlp in range(x, x - y, -1):
+                            for yAlp in range(y - start, height):
+                                genome[yAlp][xAlp] = 'X'
+                            start += 1
+        '''        
         #print(genome)
         return genome
 
@@ -138,8 +240,18 @@ class Individual_Grid(object):
         left = 1
         right = width - 2
         #print(new_genome, other.genome)
+        random_pos = random.randint(left, right)
+        while True:
+            suitable = True
+            for y in range(height - 1):
+                if new_genome[y][random_pos] == 'X':
+                    suitable = False
+            if suitable == True:
+                break
+            else:
+                random_pos = random.randint(left, right)
+            
         for y in range(height):
-            random_pos = random.randint(left, right)
             for x in range(left, random_pos):
                 # STUDENT Which one should you take?  Self, or other?  Why?
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
@@ -412,16 +524,24 @@ def generate_successors(population):
     # Hint: Call generate_children() on some individuals and fill up results.
     #for instances in population:
     #    print(instances.genome, instances.fitness())
-    for instances in range(0, len(population)):
-        parent1 = getParent(population)
-        parent2 = getParent(population)
-
-        while parent1 == parent2:
+    global elitist
+    if elitist == False:
+        #only do elitist once
+        elitist = True
+        for instances in population:
+            if instances.fitness() > 0.0:
+                results.append(instances)
+    else:
+        for instances in range(0, len(population)):
+            parent1 = getParent(population)
             parent2 = getParent(population)
-        
-        result = Individual.generate_children(parent1, parent2)
-        for element in result:
-            results.append(element)
+
+            while parent1 == parent2:
+                parent2 = getParent(population)
+            
+            result = Individual.generate_children(parent1, parent2)
+            for element in result:
+                results.append(element)
         
     return results
 

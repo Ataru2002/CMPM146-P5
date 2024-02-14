@@ -86,14 +86,14 @@ class Individual_Grid(object):
                     platforms = 1
                 if genome[y][x] == 'E':
                     enemies = 1
-                if genome[y][x] == 'C':
+                if genome[y][x] == 'o':
                     coins = 1
                 if y == height - 1 and genome[y][x] == '-':
                     pits = 1
                 if y < height - 1 and genome[y][x] == 'X':
                     stairs = 1
 
-        obstables_zonex = (9, 190)
+        obstables_zonex = (9, 195)
         obstables_zoney = (11, 13)
         # introducing new stuff
         if pipes < 1:
@@ -105,7 +105,7 @@ class Individual_Grid(object):
                 for yAlp in range(y + 1, height):
                     genome[yAlp][x] = '|'
 
-        obstables_zonex = (9, 190)
+        obstables_zonex = (9, 195)
         obstables_zoney = (10, 12)
         #add a platform
         if platforms < 1:
@@ -122,7 +122,7 @@ class Individual_Grid(object):
                         else:
                             genome[y][xAlp] = 'B'
                     
-        obstables_zonex = (9, 190)
+        obstables_zonex = (9, 195)
         obstables_zoney = (14, 14)
         #add an enemy
         if enemies < 1:
@@ -131,16 +131,16 @@ class Individual_Grid(object):
             if genome[y][x] == '-':
                 genome[y][x] = 'E'
         
-        obstables_zonex = (1, 190)
+        obstables_zonex = (1, 195)
         obstables_zoney = (11, 14)
         #add coins
         if coins < 1:
             x = random.randint(obstables_zonex[0], obstables_zonex[1])
             y = random.randint(obstables_zoney[0], obstables_zoney[1])
             if genome[y][x] == '-':
-                genome[y][x] = 'C'
+                genome[y][x] = 'o'
 
-        obstables_zonex = (9, 190)
+        obstables_zonex = (9, 195)
         obstables_zoney = (15, 15)
         #add a pit
         if pits < 1:
@@ -149,7 +149,7 @@ class Individual_Grid(object):
             if genome[y][x] == 'X':
                 genome[y][x] = '-'
         
-        obstables_zonex = (9, 190)
+        obstables_zonex = (9, 195)
         obstables_zoney = (15, 15)
         #add a stair
         if stairs < 1:

@@ -10,6 +10,8 @@ import math
 
 width = 200
 height = 16
+elitist = False
+
 
 options = [
     "-",  # an empty space
@@ -69,10 +71,165 @@ class Individual_Grid(object):
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
 
         left = 1
-        right = width - 1
+        right = width - 2
+        pipes = 0
+        platforms = 0
+        enemies = 0
+        coins = 0
+        pits = 0
+        stairs = 0
         for y in range(height):
             for x in range(left, right):
-                pass
+                if genome[y][x] == 'T':
+                    pipes = 1
+                if genome[y][x] == 'B':
+                    platforms = 1
+                if genome[y][x] == 'E':
+                    enemies = 1
+                if genome[y][x] == 'C':
+                    coins = 1
+                if y == height - 1 and genome[y][x] == '-':
+                    pits = 1
+                if y < height - 1 and genome[y][x] == 'X':
+                    stairs = 1
+
+        obstables_zonex = (9, 190)
+        obstables_zoney = (11, 13)
+        # introducing new stuff
+        if pipes < 1:
+            # add a pipe
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                genome[y][x] = 'T'
+                for yAlp in range(y + 1, height):
+                    genome[yAlp][x] = '|'
+
+        obstables_zonex = (9, 190)
+        obstables_zoney = (10, 12)
+        #add a platform
+        if platforms < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                for xAlp in range(x, x + 5):
+                    if genome[y][xAlp] == '-':
+                        blockdecider = random.randint(1, 100)
+                        if blockdecider <= 10:
+                            genome[y][xAlp] = '?'
+                        elif blockdecider <= 20:
+                            genome[y][xAlp] = 'M'
+                        else:
+                            genome[y][xAlp] = 'B'
+                    
+        obstables_zonex = (9, 190)
+        obstables_zoney = (14, 14)
+        #add an enemy
+        if enemies < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                genome[y][x] = 'E'
+        
+        obstables_zonex = (1, 190)
+        obstables_zoney = (11, 14)
+        #add coins
+        if coins < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == '-':
+                genome[y][x] = 'C'
+
+        obstables_zonex = (9, 190)
+        obstables_zoney = (15, 15)
+        #add a pit
+        if pits < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            if genome[y][x] == 'X':
+                genome[y][x] = '-'
+        
+        obstables_zonex = (9, 190)
+        obstables_zoney = (15, 15)
+        #add a stair
+        if stairs < 1:
+            x = random.randint(obstables_zonex[0], obstables_zonex[1])
+            y = random.randint(obstables_zoney[0], obstables_zoney[1])
+            step = 1
+            if genome[y][x] == 'X':
+                for xAlp in range(x, x + 4):
+                    if genome[y][xAlp] == 'X':
+                        for yAlp in range(y - step, y):
+                            genome[yAlp][xAlp] = 'X'
+                        step += 1
+                    else:
+                        break
+            
+        
+
+        '''
+        platform = False
+        stair = False
+        
+        # introducing new stuff
+        for y in range(height):
+            for x in range(left, right):
+                # add a pipe
+                if pipe == False and random.randint(1, 100) <= 20:
+                    if obstables_zoney[0] <= y and y <= obstables_zoney[1] and obstables_zonex[0] <= x and x <= obstables_zonex[1]:
+                        genome[y][x] = 'T'
+                        pipe = True
+                        for yAlp in range(y + 1, height):
+                            genome[yAlp][x] = '|'
+                
+        for y in range(height):
+            for x in range(left, right):
+                #add a platform size 5
+                if platform == False and random.randint(1, 100) <= 20:
+                    if obstables_zoney[0] <= y and y <= obstables_zoney[1] and obstables_zonex[0] <= x and x <= obstables_zonex[1]:
+                        platform = True
+                        for xAlp in range(x, x + 5):
+                            genome[y][xAlp] = 'B'
+
+
+
+        # constraints
+        for y in range(height):
+            for x in range(left, right): 
+                # No enemies in the sky
+                if genome[y][x] == 'E' and y + 2 > height:
+                    genome[y][x] = '-'
+
+                # If I see a pipe head and no segments underneath
+                if genome[y][x] == 'T' and (y + 1 < height - 1 and(genome[y - 1][x] != '|')):
+                    genome[y][x] = '-'
+
+                # If I see a pipe segment, I'll see if it actually belongs to a pipe, if not I'll make it into an empty space
+                if genome[y][x] == '|':
+                    if ((genome[y - 1][x] != '|' or genome[y - 1][x] != 'T') and (y + 1 < height - 1 and genome[y + 1][x] != '|')) :
+                        genome[y][x] = '-'
+                
+                # There shouldn't be anything blocking the goal
+                if right - x <= 3 and y < height - 1 and genome[y][x] != '-':
+                    genome[y][x] = '-'
+
+                # Give the player some space
+                if left + x <= 10 and y < height - 1 and genome[y][x] != '-':
+                    genome[y][x] = '-'
+        
+        for y in range(height):
+            for x in range(left, right):
+                #add a stair
+                if stair == False and random.randint(1, 100) <= 10:
+                    if obstables_zoney[0] <= y and y <= obstables_zoney[1] and obstables_zonex[0] <= x and x <= obstables_zonex[1]:
+                        stair = True
+                        start = 0
+                        for xAlp in range(x, x - y, -1):
+                            for yAlp in range(y - start, height):
+                                genome[yAlp][xAlp] = 'X'
+                            start += 1
+        '''        
+        #print(genome)
         return genome
 
     # Create zero or more children from self and other
@@ -81,14 +238,28 @@ class Individual_Grid(object):
         # Leaving first and last columns alone...
         # do crossover with other
         left = 1
-        right = width - 1
+        right = width - 2
+        #print(new_genome, other.genome)
+        random_pos = random.randint(left, right)
+        while True:
+            suitable = True
+            for y in range(height - 1):
+                if new_genome[y][random_pos] == 'X':
+                    suitable = False
+            if suitable == True:
+                break
+            else:
+                random_pos = random.randint(left, right)
+            
         for y in range(height):
-            for x in range(left, right):
+            for x in range(left, random_pos):
                 # STUDENT Which one should you take?  Self, or other?  Why?
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
-                pass
+                new_genome[y][x] = self.genome[y][x]
+            for x in range(random_pos, right):
+                new_genome[y][x] = other.genome[y][x]
         # do mutation; note we're returning a one-element tuple here
-        return (Individual_Grid(new_genome),)
+        return (Individual_Grid(self.mutate(new_genome)),)
 
     # Turn the genome into a level string (easy for this genome)
     def to_level(self):
@@ -163,15 +334,13 @@ class Individual_DE(object):
             pathPercentage=0.5,
             emptyPercentage=0.6,
             linearity=-0.5,
-            solvability=2.0
+            solvability=3.0
         )
-        penalties = 0
         # STUDENT For example, too many stairs are unaesthetic.  Let's penalize that
-        if len(list(filter(lambda de: de[1] == "6_stairs", self.genome))) > 5:
-            penalties -= 2
+        stair_count = len(list(filter(lambda de: de[1] == "6_stairs", self.genome)))
+        stair_penalty = -0.2 * stair_count
         # STUDENT If you go for the FI-2POP extra credit, you can put constraint calculation in here too and cache it in a new entry in __slots__.
-        self._fitness = sum(map(lambda m: coefficients[m] * measurements[m],
-                                coefficients)) + penalties
+        self._fitness = sum(coefficients[m] * measurements[m] for m in coefficients) + stair_penalty
         return self
 
     def fitness(self):
@@ -182,7 +351,7 @@ class Individual_DE(object):
     def mutate(self, new_genome):
         # STUDENT How does this work?  Explain it in your writeup.
         # STUDENT consider putting more constraints on this, to prevent generating weird things
-        if random.random() < 0.1 and len(new_genome) > 0:
+        if random.random() < 0.2 and len(new_genome) > 0:
             to_change = random.randint(0, len(new_genome) - 1)
             de = new_genome[to_change]
             new_de = de
@@ -261,8 +430,12 @@ class Individual_DE(object):
 
     def generate_children(self, other):
         # STUDENT How does this work?  Explain it in your writeup.
-        pa = random.randint(0, len(self.genome) - 1)
-        pb = random.randint(0, len(other.genome) - 1)
+        pa = -1
+        pb = -1
+        if len(self.genome) > 0:
+            pa = random.randint(0, len(self.genome) - 1)
+        if len(other.genome) > 0:
+            pb = random.randint(0, len(other.genome) - 1)
         a_part = self.genome[:pa] if len(self.genome) > 0 else []
         b_part = other.genome[pb:] if len(other.genome) > 0 else []
         ga = a_part + b_part
@@ -340,14 +513,79 @@ class Individual_DE(object):
         return Individual_DE(g)
 
 
-Individual = Individual_Grid
+Individual = Individual_DE
 
 
 def generate_successors(population):
     results = []
     # STUDENT Design and implement this
     # Hint: Call generate_children() on some individuals and fill up results.
+    #for instances in population:
+    #    print(instances.genome, instances.fitness())
+    global elitist
+    if elitist == False:
+        #only do elitist once
+        elitist = True
+        for instances in population:
+            if instances.fitness() > 0.0:
+                results.append(instances)
+    else:
+        for instances in range(0, len(population)):
+            parent1 = getParent(population)
+            parent2 = getParent(population)
+
+            while parent1 == parent2:
+                parent2 = getParent(population)
+            
+            result = Individual.generate_children(parent1, parent2)
+            for element in result:
+                results.append(element)
+        
     return results
+
+
+def getParent(population):
+    decider = random.randint(1, 10)
+    #print("decider: ", decider)
+    #print("available: ")
+    #for instances in population:
+    #    print(instances.genome)
+    if(decider <= 5):
+        # do tournament
+        candidate1 = random.randint(0, len(population) - 1)
+        candidate2 = random.randint(0, len(population) - 1)
+
+        while candidate1 == candidate2:
+            candidate2 = random.randint(0, len(population) - 1)
+        
+        if population[candidate1].fitness() > population[candidate2].fitness():
+            return population[candidate1]
+        else:
+            return population[candidate2]
+    else:
+        # do roulette
+        normalizeList = []
+        sum = 0.0
+        min = 1e9
+        max = 0.0
+        const = 5
+        for instances in population:
+            sum += instances.fitness() + const
+        for instances in population:
+            #print((instances.fitness() + const), (instances.fitness() + const) / sum)
+            normalizeList.append(((instances.fitness() + const) / sum, instances))
+            min = (min if min < ((instances.fitness() + const) / sum) else ((instances.fitness() + const) / sum))
+            max = (max if max > ((instances.fitness() + const) / sum) else ((instances.fitness() + const) / sum))
+        normalizeList = sorted(normalizeList, key=lambda x : x[0])
+        chosen = random.uniform(min, max)
+        #print(normalizeList)
+        #print(chosen, min, max)
+        for instances in normalizeList:
+            if instances[0] >= chosen:
+                #print(chosen, instances[1].fitness())
+                return instances[1]
+        #print(chosen, normalizeList[len(normalizeList) - 1][1].fitness())
+        return normalizeList[len(normalizeList) - 1][1]
 
 
 def ga():
@@ -398,9 +636,7 @@ def ga():
                 gendone = time.time()
                 print("Generated successors in:", gendone - gentime, "seconds")
                 # Calculate fitness in batches in parallel
-                next_population = pool.map(Individual.calculate_fitness,
-                                           next_population,
-                                           batch_size)
+                next_population = pool.map(Individual.calculate_fitness, next_population, batch_size)
                 popdone = time.time()
                 print("Calculated fitnesses in:", popdone - gendone, "seconds")
                 population = next_population
